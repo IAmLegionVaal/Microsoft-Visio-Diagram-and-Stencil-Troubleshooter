@@ -1,0 +1,6 @@
+#requires -Version 5.1
+<# Created by Dewald Pretorius #>
+param([string]$OutputPath)
+if(-not $OutputPath){$OutputPath="$([Environment]::GetFolderPath('Desktop'))\Visio_Diagram_Reports"};New-Item $OutputPath -ItemType Directory -Force|Out-Null
+$proc=Get-Process VISIO -ErrorAction SilentlyContinue;$stencils=@("$env:USERPROFILE\Documents\My Shapes","$env:APPDATA\Microsoft\Visio")|Where-Object{Test-Path $_};$events=Get-WinEvent -FilterHashtable @{LogName='Application';StartTime=(Get-Date).AddDays(-7)} -ErrorAction SilentlyContinue|Where-Object Message -match 'VISIO|stencil|shape'|Select-Object -First 50 TimeCreated,Id,ProviderName,Message
+@('MICROSOFT VISIO DIAGRAM AND STENCIL TROUBLESHOOTER','Created by Dewald Pretorius',"Generated: $(Get-Date)","Running: $([bool]$proc)",'Stencil paths:',($stencils|Out-String),'Events:',($events|Format-List|Out-String -Width 220),'Guidance: verify stencil paths, trusted locations, damaged shapes, linked images, printer drivers, templates, and add-ins.')|Set-Content (Join-Path $OutputPath 'Report.txt') -Encoding UTF8
